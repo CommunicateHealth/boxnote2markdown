@@ -10,10 +10,35 @@
   var doc = frame.contentWindow.document.getElementById("innerdocbody");
   var out = "# "+doc.querySelector('#titleContainer h1').innerHTML+"\n";
   var nodes = doc.querySelector('#editor-content-editable').childNodes;
-  function parseDiv(nodes, noReturn){
-    var out = '',i,h2=false,h3=false,spanCount=0;
+  
+  // parse Inline content
+  function parseSpan(nodes) {
+    var out = '',i, node;
     for(i=0;i<nodes.length;++i){
-      var node = nodes[i];
+      node = nodes[i];
+      switch(node.nodeName){
+      case "#text": 
+        out += node.nodeValue;
+        break;
+      case "A":
+        out += '[' + parseSpan(node.childNodes).replace(/\)/,"\\)").replace(/\(/,"\\(").replace(/\*/,"\\*") + "](" + node.getAttribute("href") + ")";
+        break;
+      default:
+        if(node.childNodes.length > 0){
+          out += parseSpan(node.childNodes);
+        } else {
+          out += node.innerHTML;
+        }
+      }
+    }
+    return out;
+  }
+
+    // parse Block content
+  function parseDiv(nodes, noReturn){
+    var out = '',i,node,h2=false,h3=false,spanCount=0;
+    for(i=0;i<nodes.length;++i){
+      node = nodes[i];
       switch(node.nodeName){
       case "SPAN": 
         ++spanCount;
@@ -40,7 +65,7 @@
         if( node.classList.contains("u") ) out += "<ins>";
         if( node.classList.contains("b") ) out += "**";
         if( node.classList.contains("i") ) out += "*";
-        out+=node.innerHTML.replace(/\*/g,"\\*").replace(/_/g,"\\_").replace(/<\/?[bui]>/g,"");
+        out+=parseSpan(node.childNodes);
         if( node.classList.contains("i") ) out += "*";
         if( node.classList.contains("b") ) out += "**";
         if( node.classList.contains("u") ) out += "</ins>";
@@ -62,6 +87,8 @@
     if(!noReturn) out += "\n\n";
     return out;
   }
+  
+  // parse Table
   function parseTable(nodes){
     var out = '', i, node, firstRow = true, firstCol, cols, tds, j, td, k, div;
     for(i=0;i<nodes.length;++i){
@@ -108,6 +135,8 @@
       break
     }
   }
+  
+  // Display the result
   var popover = document.createElement('textarea');
   popover.id="popover";
   popover.setAttribute("style","position:fixed;top:5%;left:5%;bottom:5%;right:5%;width:90%;padding:20px;z-index:999;background:#eee;border:1 px solid black");
@@ -117,7 +146,8 @@
   closePop.setAttribute("type","button");
   closePop.innerHTML = "<b>X</b>"
   closePop.setAttribute("style","position:fixed;top:5%;right:5%;background:red;color:white;padding:5px;z-index:999;");
-  closePop.onclick=function(){
+  popover.focus();
+  closePop.onclick=popover.onblur=function(){
     document.body.removeChild(closePop);
     document.body.removeChild(popover);
   };
