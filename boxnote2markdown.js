@@ -1,4 +1,3 @@
-// https://notes.services.box.com/p/note?fileId=286210665411&authCode=GJn9Kh73KmPMLS0SMEY6t0nNrHkepVDR&utm_source=filelist&utm_medium=web&hostname=communicatehealth.app.box.com&subdomain=communicatehealth
 (function(){
   var service_iframe = document.getElementById('service_iframe');
   if(service_iframe){
