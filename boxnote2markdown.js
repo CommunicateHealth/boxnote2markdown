@@ -152,5 +152,5 @@
     document.body.removeChild(popover);
   };
   document.body.appendChild(closePop);
-  
+  setTimeout(function(){popover.scrollTop = 0;},20);
 })();
